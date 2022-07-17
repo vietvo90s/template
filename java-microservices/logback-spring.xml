@@ -1,0 +1,27 @@
+<configuration>
+    <springProperty scope="context" name="application_name" source="spring.application.name" />
+    <springProperty scope="context" name="instance_id" source="instanceId" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <springProfile name="!(test | uat | prod)">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%n%n%highlight(%level:%n - msg: "%msg"%n - triggerAt: "%logger / thread: %thread"%n - timestamp: "%d{HH:mm:ss.SSS}"%n - mdc: "%X{mdcData}"%n - exception: %ex)</pattern>
+            </encoder>
+        </springProfile>
+        <springProfile name="(test | uat | prod)">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </springProfile>
+    </appender>
+    <appender name="STASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>192.168.1.50:5100</destination>
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STASH"/>
+    </root>
+    <logger name="${project.groupId}" level="trace" additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STASH"/>
+    </logger>
+</configuration>
